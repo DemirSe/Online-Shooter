@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  game-server:
+    build: ./backend
+    ports:
+      - "3001:3001"  # Socket.io port
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  game-client:
+    build: ./frontend
+    ports:
+      - "3000:80"    # Web server port
+    depends_on:
+      - game-server
+    restart: unless-stopped 
