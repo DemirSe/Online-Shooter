@@ -30,7 +30,7 @@ module.exports = {
       filename: 'index.html'
     }),
     new webpack.DefinePlugin({
-      'process.env.BACKEND_URL': JSON.stringify('http://localhost:8080')
+      'process.env.BACKEND_URL': JSON.stringify('http://test.demirse.com')
     })
   ],
   devServer: {

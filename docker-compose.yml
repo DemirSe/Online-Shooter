@@ -1,8 +1,46 @@
 version: "3.9"
+
 services:
+  reverse-proxy:
+    image: traefik:v2.10
+    container_name: traefik-reverse-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/etc/traefik/traefik.toml
+      - ./acme.json:/acme.json
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.test.demirse.com`)"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=traefik-auth"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$apr1$$H6uskkLW$$CPiURkoHA326Gq724QFola"
+
   app:
     build: .
+    container_name: online-shooter-app
     ports:
-      - "8080:3000"
+      - "3000:3000"
     environment:
-      - BACKEND_URL=http://localhost:3000 # or http://app:3000 if using docker network
+      - BACKEND_URL=http://test.demirse.com:3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`test.demirse.com`) && PathPrefix(`/socket.io`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.service=backend-svc"
+      - "traefik.http.services.backend-svc.loadbalancer.server.port=3000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: online-shooter-frontend
+    ports:
+      - "8080:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`test.demirse.com`) && !PathPrefix(`/socket.io`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend.service=frontend-svc"
+      - "traefik.http.services.frontend-svc.loadbalancer.server.port=80"
