@@ -1,18 +1,8 @@
-version: '3.8'
-
+version: "3.9"
 services:
-  game-server:
-    build: ./backend
+  app:
+    build: .
     ports:
-      - "3001:3001"  # Socket.io port
+      - "8080:3000"
     environment:
-      - NODE_ENV=production
-    restart: unless-stopped
-
-  game-client:
-    build: ./frontend
-    ports:
-      - "3000:80"    # Web server port
-    depends_on:
-      - game-server
-    restart: unless-stopped 
+      - BACKEND_URL=http://localhost:3000 # or http://app:3000 if using docker network
